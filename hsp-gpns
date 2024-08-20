@@ -1,0 +1,608 @@
+<%
+
+wan_interface ||= 'bge0'
+lan_interface ||= 'bge3'
+
+%>
+
+---
+Policy:
+- name: Default
+- name: Marriott computers
+- name: Guest Lobby Pre-Login
+  note: LOBBY
+- name: Guest Lobby Tier
+- name: Guest Room Pre-Login
+  default: true
+- name: Guest Tier 1
+- name: Guest Tier 2
+- name: Network Infrastructure
+
+# Create PMS Server
+# IMPORTANT:  See end of this template for simulator configuration
+PmsServer:
+- name: local simulator
+  interface: Fidelio
+  host: 127.0.0.1
+  port: 5010
+  timeout: 30
+  first_credential: RN
+  second_credential: GN
+  dd_format:
+  - mac_decimal
+  protocol: IP
+  subsequent_transaction_max_count: 0
+  subsequent_transaction_max_lifetime: 0
+  subsequent_transaction_price_reduction: 0%
+  ct_format:
+  - dhcp_hostname
+  - mac_vendor
+  - usage_plan
+  dd_length: 20
+  ct_length: 40
+  soap_endpoint: https://operademo3.microsdc.us
+  soap_username: HTNG
+  soap_password: HTNG
+  revenue_code: '2'
+  post_zero_charge: true
+  account_sharing: guest
+  show_only_matched_plans: true
+  dup_timeout_seconds: 60
+  enable_db_sync: true
+  send_post_request: true
+  service_code: WWW
+  description_field: usage_plan_name
+  transaction_code: '50'
+  resort_ident: FSDH4
+  itemizer_ident: '1'
+  payment_ident: '0'
+  revenue_center_ident: '1'
+  automatic_login_fallback: false
+  htng_username: OPERA
+  htng_password: OPERA
+  update_profile_email_mode: disabled
+  resid_match: A
+  portal_plan_override: true
+  
+CustomPortal:
+- name: marriottv4local
+  controller_name: marriottv4local
+  portal_source: git
+  sync_frequency: none
+  remote_sync_url: https://gitlab+deploy-token-127:gldt-C71K9wYyyKpnWYo8zuQN@git.rgnets.com/rgnets/portals/marriottv4local.git
+  git_ref: master
+  current_commit_hash: 425d39b
+  
+LadvdOption:
+- name: default
+  active: true
+  auto_enable_protocols: true
+  listen_only: false
+  interfaces:
+  - <%= lan_interface %>
+  - <%= wan_interface %>
+  
+Vlan:
+- name: Network LAN Switch Management
+  interface: <%= lan_interface %>
+  tag: 100
+  autoincrement_mode: none
+- name: Forescout Sensor
+  tag: 120
+  autoincrement_mode: none
+- name: MI PCI Servers
+  tag: 200
+  autoincrement_mode: none
+- name: MI Non-PCI Servers
+  tag: 201
+  autoincrement_mode: none
+- name: MI Server Mgmt
+  tag: 202
+  autoincrement_mode: none
+- name: POS
+  tag: 203
+  autoincrement_mode: none
+- name: Associate Client Devices
+  interface: <%= lan_interface %>
+  tag: 300
+  autoincrement_mode: none
+- name: EMV / Chip and Pin
+  tag: 306
+  autoincrement_mode: none
+- name: Quarantine VLAN for NAC
+  tag: 399
+  autoincrement_mode: none
+- name: Associate Laptops (Wireless)
+  tag: 450
+  autoincrement_mode: none
+- name: Associate PDAs/Micros Handhelds
+  tag: 451
+  autoincrement_mode: none
+- name: Samsotech eReg Tablets
+  tag: 458
+  autoincrement_mode: none
+- name: GPNS Full Connector
+  tag: 900
+  autoincrement_mode: none
+- name: Wireless Access Points
+  interface: <%= lan_interface %>
+  tag: 101
+- name: UPS Devices
+  interface: <%= lan_interface %>
+  tag: 106
+  autoincrement_mode: none
+- name: Out of Band Management
+  tag: 108
+  autoincrement_mode: none
+- name: Chromecast Proxy Server Management
+  tag: 110
+  autoincrement_mode: none
+- name: Guest in-room switches
+  tag: 111
+  autoincrement_mode: none
+- name: Associate VOIP
+  tag: 601
+  autoincrement_ratio: 1
+  autoincrement_mode: address
+- name: Conference Wireless
+  tag: 1001
+  autoincrement_mode: none
+- name: Guest Wireless
+  interface: <%= lan_interface %>
+  tag: 1000
+  autoincrement_mode: none
+- name: Guest Free Wireless
+  interface: <%= lan_interface %>
+  tag: 1016
+  autoincrement_mode: none
+- name: Guest VOIP
+  tag: 652
+  autoincrement_ratio: 1
+  autoincrement_mode: address
+
+Address:
+- name: Guest Wireless
+  vlan: Guest Wireless
+  span: 1
+  autoincrement: 1
+  primary: true
+  cidr: 172.20.0.1/20
+  policy: Guest Room Pre-Login
+- name: Guest Free Wireless
+  vlan: Guest Free Wireless
+  span: 1
+  autoincrement: 1
+  primary: true
+  cidr: 172.20.16.1/22
+  policy: Guest Lobby Pre-Login
+- name: Management LAN
+  interface: <%= lan_interface %>
+  span: 1
+  autoincrement: 1
+  primary: true
+  cidr: 192.168.5.1/24
+- name: Network LAN Switch Management
+  interface: <%= lan_interface %>
+  span: 1
+  autoincrement: 1
+  primary: true
+  cidr: 10.0.3.129/25
+  policy: Network Infrastructure
+- name: Wireless Access Points
+  vlan: Wireless Access Points
+  span: 1
+  autoincrement: 1
+  primary: true
+  cidr: 192.168.224.1/20
+  policy: Network Infrastructure
+- name: UPS Devices
+  vlan: UPS Devices
+  span: 1
+  autoincrement: 1
+  primary: true
+  cidr: 192.168.223.1/25
+  policy: Network Infrastructure
+- name: Guest in-room switches
+  vlan: Guest in-room switches
+  span: 1
+  autoincrement: 1
+  primary: true
+  cidr: 192.168.212.1/23
+  policy: Network Infrastructure
+- name: Associate VOIP
+  vlan: Associate VOIP
+  span: 1
+  autoincrement: 2
+  primary: true
+  cidr: 172.16.0.1/23
+  policy: Network Infrastructure
+- name: Guest VOIP
+  vlan: Guest VOIP
+  span: 1
+  autoincrement: 6
+  primary: true
+  cidr: 172.16.6.1/23
+- name: Associate Laptops (Wireless)
+  vlan: Associate Laptops (Wireless)
+  span: 1
+  autoincrement: 1
+  primary: true
+  cidr: 10.0.2.129/26
+- name: Associate Client Devices
+  vlan: Associate Client Devices
+  span: 1
+  autoincrement: 1
+  cidr: 172.30.20.1/22
+  policy: Marriott computers
+- name: Associate Client Devices
+  vlan: Associate Client Devices
+  span: 1
+  autoincrement: 1
+  primary: true
+  cidr: 10.0.0.129/25
+  policy: Marriott computers
+
+IpGroup:
+- name: ICX8200
+  policy: Network Infrastructure
+  priority: 9
+- name: Network Management
+  policy: Network Infrastructure
+  priority: 2
+  addresses:
+  - Network LAN Switch Management
+- name: Guest Lobby Pre-Login
+  policy: Guest Lobby Pre-Login
+  priority: 2
+  addresses:
+  - Guest Free Wireless
+- name: Guest Room Pre-Login
+  policy: Guest Room Pre-Login
+  priority: 2
+  addresses:
+  - Guest Wireless
+- name: OpenWiFi
+  policy: Network Infrastructure
+  priority: 9
+- name: vSZ
+  policy: Network Infrastructure
+  priority: 9
+- name: Associate Client Devices
+  policy: Marriott computers
+  priority: 2
+  addresses:
+  - Associate Client Devices
+- name: Wireless Access Points
+  policy: Network Infrastructure
+  priority: 2
+  addresses:
+  - Wireless Access Points
+- name: UPS Devices
+  policy: Network Infrastructure
+  priority: 2
+  addresses:
+  - UPS Devices
+- name: Guest in-room switches
+  policy: Network Infrastructure
+  priority: 2
+  addresses:
+  - Guest in-room switches
+- name: Associate VOIP
+  policy: Network Infrastructure
+  priority: 2
+  addresses:
+  - Associate VOIP
+- name: Associate Client Devices
+  policy: Marriott computers
+  priority: 2
+  addresses:
+  - Associate Client Devices  
+  
+QuotaPlan:
+- name: Unlimited
+  price: 0.0
+  unlimited_usage_mb_up: true
+  unlimited_usage_mb_down: true
+  
+TimePlan:
+- name: GUEST-P_PLAN1
+  price: 0.0
+  unlimited_usage_minutes: true
+- name: LOBBY-P_PLAN1
+  price: 0.0
+  unlimited_usage_minutes: true
+- name: P_PLAN1-7-0.00
+  price: 0.0
+  unlimited_usage_minutes: true
+- name: P_PLAN2-3-6.99
+  price: 6.99
+  unlimited_usage_minutes: true
+- name: P_PLAN2-4-6.99
+  price: 6.99
+  unlimited_usage_minutes: true
+- name: P_PLAN2-2-6.99
+  price: 6.99
+  unlimited_usage_minutes: true
+- name: P_PLAN2-5-6.99
+  price: 6.99
+  unlimited_usage_minutes: true
+- name: P_PLAN2-1-6.99
+  price: 6.99
+  unlimited_usage_minutes: true
+- name: GUEST-P_PLAN2-b
+  price: 6.99
+  unlimited_usage_minutes: true
+- name: P_PLAN1-1-0.0
+  price: 0.0
+  unlimited_usage_minutes: true
+- name: P_PLAN1-127-0.0
+  price: 0.0
+  unlimited_usage_minutes: true
+  
+UsagePlan:
+- name: P_PLAN1-1-0.0
+  description: A
+  currency: USD
+  recurring_method: daily
+  variable_recurring_day: true
+  automatic_login: true
+  usage_lifetime_time: 30
+  recurring_retry_grace_minutes: 1440
+  recurring_fail_limit: 1
+  unlimited_devices: true
+  unlimited_sessions: true
+  usage_lifetime_time_unit: hours
+  max_dedicated_ips: 0
+  pms_guest_match_operator: OR
+  recurring_lifetime_time: 1
+  recurring_lifetime_time_unit: days
+  validation_method: none
+  validation_grace_minutes: 0
+  max_party_devices: 0
+- name: P_PLAN1-7-0.00
+  description: A
+  currency: USD
+  recurring_method: daily
+  variable_recurring_day: true
+  automatic_login: true
+  usage_lifetime_time: 30
+  recurring_retry_grace_minutes: 1440
+  recurring_fail_limit: 1
+  max_sessions: 50
+  max_devices: 50
+  usage_lifetime_time_unit: hours
+  max_dedicated_ips: 0
+  pms_guest_match_operator: OR
+  recurring_lifetime_time: 7
+  recurring_lifetime_time_unit: days
+  validation_method: none
+  validation_grace_minutes: 0
+  max_party_devices: 0
+- name: P_PLAN2-1-6.99
+  description: A+E
+  currency: USD
+  recurring_method: daily
+  variable_recurring_day: true
+  automatic_login: true
+  usage_lifetime_time: 30
+  recurring_retry_grace_minutes: 1440
+  recurring_fail_limit: 1
+  max_sessions: 50
+  max_devices: 50
+  usage_lifetime_time_unit: hours
+  max_dedicated_ips: 0
+  pms_guest_match_operator: OR
+  recurring_lifetime_time: 1
+  recurring_lifetime_time_unit: days
+  validation_method: none
+  validation_grace_minutes: 0
+  max_party_devices: 0
+- name: P_PLAN2-2-6.99
+  description: A+E
+  currency: USD
+  recurring_method: daily
+  variable_recurring_day: true
+  automatic_login: true
+  usage_lifetime_time: 30
+  recurring_retry_grace_minutes: 1440
+  recurring_fail_limit: 1
+  max_sessions: 50
+  max_devices: 50
+  usage_lifetime_time_unit: hours
+  max_dedicated_ips: 0
+  pms_guest_match_operator: OR
+  recurring_lifetime_time: 2
+  recurring_lifetime_time_unit: days
+  validation_method: none
+  validation_grace_minutes: 0
+  max_party_devices: 0
+- name: P_PLAN2-3-6.99
+  currency: USD
+  recurring_method: daily
+  variable_recurring_day: true
+  automatic_login: true
+  usage_lifetime_time: 30
+  recurring_retry_grace_minutes: 1440
+  recurring_fail_limit: 1
+  max_sessions: 50
+  max_devices: 50
+  usage_lifetime_time_unit: hours
+  max_dedicated_ips: 0
+  pms_guest_match_operator: OR
+  recurring_lifetime_time: 3
+  recurring_lifetime_time_unit: days
+  validation_method: none
+  validation_grace_minutes: 0
+  max_party_devices: 0
+- name: P_PLAN2-4-6.99
+  description: A+E
+  currency: USD
+  recurring_method: daily
+  variable_recurring_day: true
+  automatic_login: true
+  usage_lifetime_time: 30
+  recurring_retry_grace_minutes: 1440
+  recurring_fail_limit: 1
+  max_sessions: 50
+  max_devices: 50
+  usage_lifetime_time_unit: hours
+  max_dedicated_ips: 0
+  pms_guest_match_operator: OR
+  recurring_lifetime_time: 4
+  recurring_lifetime_time_unit: days
+  validation_method: none
+  validation_grace_minutes: 0
+  max_party_devices: 0
+- name: P_PLAN2-5-6.99
+  description: A+E
+  currency: USD
+  recurring_method: daily
+  variable_recurring_day: true
+  automatic_login: true
+  usage_lifetime_time: 30
+  recurring_retry_grace_minutes: 1440
+  recurring_fail_limit: 1
+  max_sessions: 50
+  max_devices: 50
+  usage_lifetime_time_unit: hours
+  max_dedicated_ips: 0
+  pms_guest_match_operator: OR
+  recurring_lifetime_time: 5
+  recurring_lifetime_time_unit: days
+  validation_method: none
+  validation_grace_minutes: 0
+  max_party_devices: 0
+- name: P_PLAN1-127-0.0
+  description: A
+  currency: USD
+  recurring_method: daily
+  variable_recurring_day: true
+  automatic_login: true
+  usage_lifetime_time: 30
+  recurring_retry_grace_minutes: 1440
+  recurring_fail_limit: 1
+  unlimited_devices: true
+  unlimited_sessions: true
+  usage_lifetime_time_unit: hours
+  max_dedicated_ips: 0
+  pms_guest_match_operator: OR
+  recurring_lifetime_time: 127
+  recurring_lifetime_time_unit: days
+  validation_method: none
+  validation_grace_minutes: 0
+  max_party_devices: 0
+  
+CaptivePortal:
+- name: guest-splash
+  portal_name: marriottv4local
+  note: 'TRUE'
+  background_automatic_login: mac
+  portal_automatic_login: mac_reauth
+  password_reset_method: secret_question
+  role_attribute: none
+- name: public-splash
+  portal_name: marriottv4local
+  note: 'FALSE'
+  background_automatic_login: mac
+  portal_automatic_login: mac_reauth
+  password_reset_method: secret_question
+  role_attribute: none
+  
+LandingPortal:
+- name: guest-landing
+  portal_name: marriottv4local
+  unlimited_session_minutes: true
+  idle_minutes: 720
+  session_grace_minutes: 15
+  portal_automatic_login: mac_cookie
+  post_login_redirect_url: https://www.marriott.com
+  background_automatic_login: disabled
+  
+BandwidthQueue:
+- name: 100%
+  upload_bw: 100
+  upload_bw_unit: "%"
+  download_bw: 100
+  download_bw_unit: "%"
+  priority: 0
+  rt_upload_bw_unit: Kbps
+  rt_download_bw_unit: Kbps
+  burst_upload_bw_unit: Kbps
+  burst_download_bw_unit: Kbps
+  sharing: ip
+  policies:
+  - Default
+  - Guest Tier 1
+  - Guest Tier 2
+  - Network Infrastructure
+  
+AccountGroup:
+- name: P_PLAN1
+  policy: Guest Tier 1
+  priority: 4
+- name: P_PLAN2
+  policy: Guest Tier 2
+  priority: 4
+  
+DhcpPool:
+- name: Network LAN Switch Management
+  start_ip: 10.0.3.130
+  end_ip: 10.0.3.254
+  start_reserved: 0
+  end_reserved: 0
+  router_host_nth: 0
+- name: Wireless Access Points
+  start_ip: 192.168.224.2
+  end_ip: 192.168.239.254
+  start_reserved: 0
+  end_reserved: 0
+  router_host_nth: 0
+- name: UPS Devices
+  start_ip: 192.168.223.2
+  end_ip: 192.168.223.126
+  start_reserved: 0
+  end_reserved: 0
+  router_host_nth: 0
+- name: Guest in-room switches
+  start_ip: 192.168.212.2
+  end_ip: 192.168.213.254
+  start_reserved: 0
+  end_reserved: 0
+  router_host_nth: 0
+- name: Guest Wireless
+  start_ip: 172.20.0.10
+  end_ip: 172.20.15.254
+  start_reserved: 0
+  end_reserved: 0
+  router_host_nth: 0
+- name: Guest Free Wireless
+  start_ip: 172.20.16.2
+  end_ip: 172.20.19.254
+  start_reserved: 0
+  end_reserved: 0
+  router_host_nth: 0
+- name: Associate VOIP
+  start_ip: 172.16.0.10
+  end_ip: 172.16.3.254
+  start_reserved: 0
+  end_reserved: 0
+  router_host_nth: 0
+- name: Guest VOIP
+  start_ip: 172.16.6.2
+  end_ip: 172.16.17.254
+  start_reserved: 0
+  end_reserved: 0
+  router_host_nth: 0
+- name: Associate Client Devices
+  start_ip: 10.0.0.130
+  end_ip: 10.0.0.254
+  start_reserved: 0
+  end_reserved: 0
+  router_host_nth: 0
+- name: Associate Laptops (Wireless)
+  start_ip: 10.0.2.130
+  end_ip: 10.0.2.190
+  start_reserved: 0
+  end_reserved: 0
+  router_host_nth: 0
+  
