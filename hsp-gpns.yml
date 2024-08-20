@@ -18,8 +18,6 @@ Policy:
 - name: Guest Tier 2
 - name: Network Infrastructure
 
-# Create PMS Server
-# IMPORTANT:  See end of this template for simulator configuration
 PmsServer:
 - name: local simulator
   interface: Fidelio
